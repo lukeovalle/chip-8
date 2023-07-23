@@ -31,23 +31,23 @@ pub const SCREEN_HEIGHT: usize = 32;
 
 pub struct Screen {
     // monocromático? es bool==????
-    screen: [[bool; SCREEN_WIDTH]; SCREEN_HEIGHT],
+    screen: [[bool; SCREEN_HEIGHT]; SCREEN_WIDTH],
 }
 
 impl Screen {
     fn new() -> Screen {
         Screen {
-            screen: [[false; SCREEN_WIDTH]; SCREEN_HEIGHT],
+            screen: [[false; SCREEN_HEIGHT]; SCREEN_WIDTH],
         }
     }
 
     fn set_pixel(&mut self, pos: (usize, usize), val: bool) {
         // validar x, y?
-        self.screen[pos.1][pos.0] = val;
+        self.screen[pos.0][pos.1] = val;
     }
 
     pub fn get_pixel(&self, pos:(usize, usize)) -> bool {
-        self.screen[pos.1][pos.0]
+        self.screen[pos.0][pos.1]
     }
 }
 
@@ -261,8 +261,8 @@ impl Chip8 {
             // 0xB, 0xC
             [0xD, X, Y, N] => {
                 // draw
-                let (X, Y) = (X as usize, Y as usize);
-                self.draw(X, Y, N);
+                let (X, Y, N) = (X as usize, Y as usize, N as usize);
+                self.draw(self.registers[X] as usize, self.registers[Y] as usize, N);
 
             }
             _ => {
@@ -280,19 +280,19 @@ impl Chip8 {
         }
     }
 
-    fn draw(&mut self, x: usize, y: usize, n: u8) {
+    fn draw(&mut self, x: usize, y: usize, n: usize) {
         self.registers[0xF] = 0;
 
-        for i in 0..(n as usize) {
+        for i in 0..n {
             let val = self.memory[self.index as usize + i]; // fila de 8 pixeles
 
             for j in 0..8 {
-                let val = val >> (7 - j);
-                if self.screen.get_pixel((x + j, y + i)) && val == 0 {
+                let pixel = val >> (7 - j);
+                if self.screen.get_pixel((x + j, y + i)) && pixel == 0 {
                     self.registers[0xF] = 1;
                 }
 
-                self.screen.set_pixel((x + j, y + i), val != 0);
+                self.screen.set_pixel((x + j, y + i), pixel != 0);
             }
         }
     }
