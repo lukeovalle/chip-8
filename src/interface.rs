@@ -5,6 +5,12 @@ use sdl2::event::{Event, WindowEvent};
 use sdl2::keyboard::Keycode;
 use sdl2::mouse::MouseButton;
 use crate::chip8;
+use crate::chip8::{SCREEN_HEIGHT, SCREEN_WIDTH};
+
+pub enum Action {
+    Quit,
+}
+
 
 pub struct SdlContext {
     _sdl_context: sdl2::Sdl,
@@ -19,7 +25,9 @@ pub fn initialize_sdl(pixel_size: u32) -> Result<SdlContext, anyhow::Error> {
     let video_subsystem = sdl_context.video().map_err(|e| anyhow!(e))?;
 
     let window = video_subsystem
-        .window("Sudoku", 64 * pixel_size, 32 * pixel_size)
+        .window("CHIP-8",
+            SCREEN_WIDTH as u32 * pixel_size,
+            SCREEN_HEIGHT as u32 * pixel_size)
         .position_centered()
         //.resizable()
         .build()
@@ -50,8 +58,8 @@ pub fn render_window(
 
 
     //dibujar todo
-    for x in 0..64 {
-        for y in 0..32 {
+    for x in 0..SCREEN_WIDTH {
+        for y in 0..SCREEN_HEIGHT {
             let color = match screen.get_pixel((x, y)) {
                 true => white,
                 false => black,
@@ -77,7 +85,18 @@ pub fn render_window(
     Ok(())
 }
 
-
+pub fn check_input(event_pump: &mut sdl2::EventPump) -> Option<Action> {
+    for event in event_pump.poll_iter() {
+        match event {
+            Event::Quit { .. } |
+            Event::KeyDown { keycode: Some(Keycode::Escape), .. } => {
+                return Some(Action::Quit)
+            },
+            _ => {}
+        }
+    }
+    None
+}
 
 
 
