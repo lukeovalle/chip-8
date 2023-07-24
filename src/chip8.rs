@@ -253,12 +253,27 @@ impl Chip8 {
                 self.registers[0xF] = self.registers[X] >> 7;
                 self.registers[X] <<= 1;
             },
-            // 0x9
+            [0x9, X, Y, 0x0] => {
+                // skip if X != Y
+                let (X, Y) = (X as usize, Y as usize);
+
+                if self.registers[X] != self.registers[Y] {
+                    self.program_counter += 2;
+                }
+            },
             [0xA, _, _, _] => {
                 // set index
                 self.index = address;
             },
-            // 0xB, 0xC
+            [0xB, _, _, _] => {
+                // jump V0 + address
+                self.program_counter = address + self.registers[0] as u16;
+            },
+            [0xC, X, _, _] => {
+                // random
+                let X = X as usize;
+                self.registers[X] = rand::random::<u8>() & byte_2;
+            }
             [0xD, X, Y, N] => {
                 // draw
                 let (X, Y, N) = (X as usize, Y as usize, N as usize);
