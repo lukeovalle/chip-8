@@ -1,14 +1,16 @@
 use sdl2::gfx::primitives::DrawRenderer;
 use sdl2::pixels::Color;
 use anyhow::anyhow;
-use sdl2::event::{Event, WindowEvent};
+use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
-use sdl2::mouse::MouseButton;
 use crate::chip8;
 use crate::chip8::{SCREEN_HEIGHT, SCREEN_WIDTH};
+use std::collections::HashMap;
 
 pub enum Action {
     Quit,
+    Press(u8),
+    Release(u8)
 }
 
 
@@ -86,18 +88,50 @@ pub fn render_window(
 }
 
 pub fn check_input(event_pump: &mut sdl2::EventPump) -> Option<Action> {
+    let keys: HashMap<Keycode, u8> = HashMap::from([
+        (Keycode::Num1, 0x1),
+        (Keycode::Num2, 0x2),
+        (Keycode::Num3, 0x3),
+        (Keycode::Num4, 0xC),
+        (Keycode::Q, 0x4),
+        (Keycode::W, 0x5),
+        (Keycode::E, 0x6),
+        (Keycode::R, 0xD),
+        (Keycode::A, 0x7),
+        (Keycode::S, 0x8),
+        (Keycode::D, 0x9),
+        (Keycode::F, 0xE),
+        (Keycode::Z, 0xA),
+        (Keycode::X, 0x0),
+        (Keycode::C, 0xB),
+        (Keycode::V, 0xF)
+    ]);
+
+
     for event in event_pump.poll_iter() {
         match event {
             Event::Quit { .. } |
-            Event::KeyDown { keycode: Some(Keycode::Escape), .. } => {
-                return Some(Action::Quit)
+                Event::KeyDown { keycode: Some(Keycode::Escape), .. } => {
+                    return Some(Action::Quit)
             },
+            Event::KeyDown { keycode: Some(key), .. } => {
+                return check_key_down(keys, key)
+            }
+            Event::KeyUp { keycode: Some(key), .. } => {
+                return check_key_up(keys, key)
+            }
             _ => {}
         }
     }
     None
 }
 
+fn check_key_down(keys: HashMap<Keycode, u8>, key: Keycode) -> Option<Action> {
+    keys.get(&key).map(|&x| Action::Press(x))
+}
 
+fn check_key_up(keys: HashMap<Keycode, u8>, key: Keycode) -> Option<Action> {
+    keys.get(&key).map(|&x| Action::Release(x))
+}
 
 

@@ -15,6 +15,12 @@ pub fn run(file: &str) -> Result<(), anyhow::Error> {
         //  manejar eventos
         match interface::check_input(&mut game_context.event_pump) {
             Some(Action::Quit) => break 'game,
+            Some(Action::Press(key)) => {
+                chip8.key_press(key);
+            }
+            Some(Action::Release(key)) => {
+                chip8.key_release(key);
+            }
             None => {}
         }
         //

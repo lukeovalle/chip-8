@@ -29,7 +29,7 @@ impl Stack {
 pub const SCREEN_WIDTH: usize = 64;
 pub const SCREEN_HEIGHT: usize = 32;
 
-pub struct Screen {
+struct Screen {
     // monocromático? es bool==????
     screen: [[bool; SCREEN_HEIGHT]; SCREEN_WIDTH],
 }
@@ -48,6 +48,28 @@ impl Screen {
 
     pub fn get_pixel(&self, pos:(usize, usize)) -> bool {
         self.screen[pos.0][pos.1]
+    }
+}
+
+const KEYS: usize = 16;
+
+struct Keyboard {
+    keys: [bool; KEYS],
+}
+
+impl Keyboard {
+    fn new() -> Keyboard {
+        Keyboard {
+            keys: [false; KEYS],
+        }
+    }
+
+    fn set_key(&mut self, key: u8, pressed: bool) {
+        self.keys[key as usize] = pressed;
+    }
+
+    fn is_pressed(&self, key: u8) -> bool {
+        self.keys[key as usize]
     }
 }
 
@@ -86,6 +108,7 @@ pub struct Chip8 {
     delay_timer: u8,
     sound_timer: u8,
     pub screen: Screen,
+    keyboard: Keyboard,
 }
 
 impl Chip8 {
@@ -98,7 +121,8 @@ impl Chip8 {
             stack: Stack::new(),
             delay_timer: 0,
             sound_timer: 0,
-            screen: Screen::new(), 
+            screen: Screen::new(),
+            keyboard: Keyboard::new(),
         };
         c.load_font();
 
@@ -128,6 +152,14 @@ impl Chip8 {
         Ok(())
     }
 
+    pub fn key_press(&mut self, key: u8) {
+        self.keyboard.set_key(key, true);
+    }
+
+    pub fn key_release(&mut self, key: u8) {
+        self.keyboard.set_key(key, false);
+    }
+
     pub fn step(&mut self) {
         //fetch
         let pc = self.program_counter as usize;
@@ -146,6 +178,9 @@ impl Chip8 {
 
     fn execute(&mut self, nibbles: [u8; 4], address: u16, byte_2: u8) {
         match nibbles {
+            [0x0, 0x0, 0x0, 0x0] => {
+                // nothing
+            }
             [0x0, 0x0, 0xE, 0x0] => {
                 // clear
                 self.clear();
@@ -279,7 +314,21 @@ impl Chip8 {
                 let (X, Y, N) = (X as usize, Y as usize, N as usize);
                 self.draw(self.registers[X] as usize, self.registers[Y] as usize, N);
 
-            }
+            },
+            [0xE, X, 0x9, 0xE] => {
+                // skip if key is not pressed
+                let X = X as usize;
+                if !self.keyboard.is_pressed(self.registers[X]) {
+                    self.program_counter += 2;
+                }
+            },
+            [0xE, X, 0xA, 0x1] => {
+                // skip if key is pressed
+                let X = X as usize;
+                if self.keyboard.is_pressed(self.registers[X]) {
+                    self.program_counter += 2;
+                }
+            },
             _ => {
                 eprintln!("Unknown opcode {:x}, {:x}, {:x}, {:x}", nibbles[0], nibbles[1], nibbles[2], nibbles[3]);
             }
