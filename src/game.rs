@@ -2,14 +2,14 @@ use crate::chip8::Chip8;
 use crate::interface;
 use interface::Action;
 
-pub fn run() -> Result<(), anyhow::Error> {
+pub fn run(file: &str) -> Result<(), anyhow::Error> {
     let mut game_context = interface::initialize_sdl(8)?;
 
 
     let mut chip8 = Chip8::new();
 
     // Cargar ROM
-    chip8.load_rom()?;
+    chip8.load_rom(file)?;
 
     'game: loop {
         //  manejar eventos

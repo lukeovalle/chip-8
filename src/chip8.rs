@@ -110,12 +110,12 @@ impl Chip8 {
     }
 
 
-    pub fn load_rom(&mut self) -> Result<(), anyhow::Error> {
+    pub fn load_rom(&mut self, file_name: &str) -> Result<(), anyhow::Error> {
         // ver el tamaño del archivo???
         use std::fs::File;
         use std::io::Read;
 
-        let mut file = File::open("game.ch8")?;
+        let mut file = File::open(file_name)?;
 
         let mut data = vec![];
         file.read_to_end(&mut data)?;
