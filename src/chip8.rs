@@ -284,15 +284,21 @@ impl Chip8 {
         self.registers[0xF] = 0;
 
         for i in 0..n {
+            let y = (y + i) % SCREEN_HEIGHT;
+
             let val = self.memory[self.index as usize + i]; // fila de 8 pixeles
 
             for j in 0..8 {
-                let pixel = val >> (7 - j);
-                if self.screen.get_pixel((x + j, y + i)) && pixel == 0 {
+                let x = (x + j) % SCREEN_WIDTH;
+                let pixel = ((val >> (7 - j)) & 0x1) == 1;
+                let current = self.screen.get_pixel((x, y));
+                let new = pixel ^ current;
+
+                self.screen.set_pixel((x, y), new);
+
+                if current & !new {
                     self.registers[0xF] = 1;
                 }
-
-                self.screen.set_pixel((x + j, y + i), pixel != 0);
             }
         }
     }
