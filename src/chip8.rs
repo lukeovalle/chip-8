@@ -29,7 +29,7 @@ impl Stack {
 pub const SCREEN_WIDTH: usize = 64;
 pub const SCREEN_HEIGHT: usize = 32;
 
-struct Screen {
+pub struct Screen {
     // monocromático? es bool==????
     screen: [[bool; SCREEN_HEIGHT]; SCREEN_WIDTH],
 }
@@ -347,9 +347,9 @@ impl Chip8 {
                 // wait for key press
                 let x = x as usize;
 
-                match self.keyboard.keys_pressed.first() {
+                match self.keyboard.keys_pressed().first() {
                     Some(key) => {
-                        self.registers[x] = key;
+                        self.registers[x] = *key;
                     },
                     None => {
                         self.program_counter -= 2;
