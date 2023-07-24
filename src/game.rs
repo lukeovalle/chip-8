@@ -23,12 +23,14 @@ pub fn run(file: &str) -> Result<(), anyhow::Error> {
             }
             None => {}
         }
-        //
-        //  if delay_timer > 0 : delay_timer--
-        //  if sond_timre > 0 : sound_timer--
-        //
-        //  avanzar emulación (correr 8 veces por iteración)
 
+        //  if delay_timer > 0 : delay_timer--
+        chip8.decrease_delay_timer();
+        //  if sond_timre > 0 : sound_timer--
+        chip8.decrease_sound_timer();
+
+
+        //  avanzar emulación (correr 8 veces por iteración)
         for _ in 0..8{
             chip8.step();
         }

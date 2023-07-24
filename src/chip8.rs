@@ -169,6 +169,14 @@ impl Chip8 {
         self.keyboard.set_key(key, false);
     }
 
+    pub fn decrease_delay_timer(&mut self) {
+        self.delay_timer = self.delay_timer.saturating_sub(1);
+    }
+
+    pub fn decrease_sound_timer(&mut self) {
+        self.sound_timer = self.sound_timer.saturating_sub(1);
+    }
+
     pub fn step(&mut self) {
         //fetch
         let pc = self.program_counter as usize;
