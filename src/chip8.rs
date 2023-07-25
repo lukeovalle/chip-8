@@ -22,7 +22,7 @@ impl Stack {
     fn pop(&mut self) -> u16 {
         // que pasa si ya estaba vacío el stack???
         self.stack_pointer -= 1;
-        self.stack[self.stack_pointer]
+        self.stack[self.stack_pointer + 1]
     }
 }
 
@@ -334,16 +334,16 @@ impl Chip8 {
 
             },
             [0xE, X, 0x9, 0xE] => {
-                // skip if key is not pressed
+                // skip if key is pressed
                 let X = X as usize;
-                if !self.keyboard.is_pressed(self.registers[X]) {
+                if self.keyboard.is_pressed(self.registers[X]) {
                     self.program_counter += 2;
                 }
             },
             [0xE, X, 0xA, 0x1] => {
-                // skip if key is pressed
+                // skip if key is not pressed
                 let X = X as usize;
-                if self.keyboard.is_pressed(self.registers[X]) {
+                if !self.keyboard.is_pressed(self.registers[X]) {
                     self.program_counter += 2;
                 }
             },
@@ -395,13 +395,13 @@ impl Chip8 {
             },
             [0xF, X, 0x5, 0x5] => {
                 // save registers to memory
-                for i in 0..(X as usize) {
+                for i in 0..=(X as usize) {
                     self.memory[self.index as usize + i] = self.registers[i];
                 }
             },
             [0xF, X, 0x6, 0x5] => {
                 // load registers from memory
-                for i in 0..(X as usize) {
+                for i in 0..=(X as usize) {
                     self.registers[i] = self.memory[self.index as usize + i];
                 }
             }

@@ -1,24 +1,30 @@
 use crate::chip8::Chip8;
 use crate::interface;
 use interface::Action;
+use std::time::{Duration, Instant};
 
 pub fn run(file: &str) -> Result<(), anyhow::Error> {
     let mut game_context = interface::initialize_sdl(8)?;
+    let time_per_frame = Duration::new(1, 0) / 60; // 60 fps
 
 
     let mut chip8 = Chip8::new();
-
     // Cargar ROM
     chip8.load_rom(file)?;
 
     'game: loop {
+        let now = Instant::now();
+
         //  manejar eventos
         match interface::check_input(&mut game_context.event_pump) {
             Some(Action::Quit) => break 'game,
             Some(Action::Press(key)) => {
+                println!("Pressed: {}", key);
                 chip8.key_press(key);
             }
             Some(Action::Release(key)) => {
+                println!("Released: {}", key);
+
                 chip8.key_release(key);
             }
             None => {}
@@ -26,7 +32,7 @@ pub fn run(file: &str) -> Result<(), anyhow::Error> {
 
         //  if delay_timer > 0 : delay_timer--
         chip8.decrease_delay_timer();
-        //  if sond_timre > 0 : sound_timer--
+        //  if sound_timer > 0 : sound_timer--
         chip8.decrease_sound_timer();
 
 
@@ -42,8 +48,7 @@ pub fn run(file: &str) -> Result<(), anyhow::Error> {
         ) {
             eprintln!("{}", e);
         }
-        //  esperar 16ms (??)
-        //fin del ciclo
+        std::thread::sleep(time_per_frame.saturating_sub(now.elapsed()));
     }
 
     Ok(())

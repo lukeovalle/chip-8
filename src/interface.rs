@@ -115,10 +115,10 @@ pub fn check_input(event_pump: &mut sdl2::EventPump) -> Option<Action> {
                     return Some(Action::Quit)
             },
             Event::KeyDown { keycode: Some(key), .. } => {
-                return check_key_down(keys, key)
+                return check_key_down(&keys, key)
             }
             Event::KeyUp { keycode: Some(key), .. } => {
-                return check_key_up(keys, key)
+                return check_key_up(&keys, key)
             }
             _ => {}
         }
@@ -126,11 +126,11 @@ pub fn check_input(event_pump: &mut sdl2::EventPump) -> Option<Action> {
     None
 }
 
-fn check_key_down(keys: HashMap<Keycode, u8>, key: Keycode) -> Option<Action> {
+fn check_key_down(keys: &HashMap<Keycode, u8>, key: Keycode) -> Option<Action> {
     keys.get(&key).map(|&x| Action::Press(x))
 }
 
-fn check_key_up(keys: HashMap<Keycode, u8>, key: Keycode) -> Option<Action> {
+fn check_key_up(keys: &HashMap<Keycode, u8>, key: Keycode) -> Option<Action> {
     keys.get(&key).map(|&x| Action::Release(x))
 }
 
