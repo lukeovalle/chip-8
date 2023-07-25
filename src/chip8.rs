@@ -193,6 +193,7 @@ impl Chip8 {
         self.execute(nibbles, address, byte_2);
     }
 
+    #[allow(non_snake_case)]
     fn execute(&mut self, nibbles: [u8; 4], address: u16, byte_2: u8) {
         match nibbles {
             [0x0, 0x0, 0x0, 0x0] => {
@@ -346,61 +347,61 @@ impl Chip8 {
                     self.program_counter += 2;
                 }
             },
-            [0xF, x, 0x0, 0x7] => {
+            [0xF, X, 0x0, 0x7] => {
                 // get delay timer
-                let x = x as usize;
-                self.registers[x] = self.delay_timer;
+                let X = X as usize;
+                self.registers[X] = self.delay_timer;
             },
-            [0xF, x, 0, 0xA] => {
+            [0xF, X, 0, 0xA] => {
                 // wait for key press
-                let x = x as usize;
+                let X = X as usize;
 
                 match self.keyboard.keys_pressed().first() {
                     Some(key) => {
-                        self.registers[x] = *key;
+                        self.registers[X] = *key;
                     },
                     None => {
                         self.program_counter -= 2;
                     }
                 }
             },
-            [0xF, x, 0x1, 0x5] => {
+            [0xF, X, 0x1, 0x5] => {
                 // set delay timer
-                let x = x as usize;
-                self.delay_timer = self.registers[x];
+                let X = X as usize;
+                self.delay_timer = self.registers[X];
             },
-            [0xF, x, 0x1, 0x8] => {
+            [0xF, X, 0x1, 0x8] => {
                 // set sound timer
-                let x = x as usize;
-                self.sound_timer = self.registers[x];
+                let X = X as usize;
+                self.sound_timer = self.registers[X];
             },
-            [0xF, x, 0x1, 0xE] => {
+            [0xF, X, 0x1, 0xE] => {
                 // increment index
-                let x = x as usize;
-                self.index = self.index.wrapping_add(self.registers[x] as u16);
+                let X = X as usize;
+                self.index = self.index.wrapping_add(self.registers[X] as u16);
             },
-            [0xF, x, 0x2, 0x9] => {
+            [0xF, X, 0x2, 0x9] => {
                 // set index to font sprite for vx
-                let x = x as usize;
-                self.index = FONT_POSITION as u16 + self.registers[x] as u16;
+                let X = X as usize;
+                self.index = FONT_POSITION as u16 + self.registers[X] as u16;
             },
-            [0xF, x, 0x3, 0x3] => {
+            [0xF, X, 0x3, 0x3] => {
                 // decode vx to bcd
-                let vx = self.registers[x as usize];
+                let vx = self.registers[X as usize];
                 let index = self.index as usize;
                 self.memory[index] = vx / 100;
                 self.memory[index + 1] = vx / 10 % 10;
                 self.memory[index + 2] = vx % 10; 
             },
-            [0xF, x, 0x5, 0x5] => {
+            [0xF, X, 0x5, 0x5] => {
                 // save registers to memory
-                for i in 0..(x as usize) {
+                for i in 0..(X as usize) {
                     self.memory[self.index as usize + i] = self.registers[i];
                 }
             },
-            [0xF, x, 0x6, 0x5] => {
+            [0xF, X, 0x6, 0x5] => {
                 // load registers from memory
-                for i in 0..(x as usize) {
+                for i in 0..(X as usize) {
                     self.registers[i] = self.memory[self.index as usize + i];
                 }
             }
