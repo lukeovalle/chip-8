@@ -21,19 +21,25 @@ pub fn run(file: &str) -> Result<(), anyhow::Error> {
             Some(Action::Press(key)) => {
                 println!("Pressed: {}", key);
                 chip8.key_press(key);
-            }
+            },
             Some(Action::Release(key)) => {
                 println!("Released: {}", key);
 
                 chip8.key_release(key);
-            }
-            None => {}
+            },
+            None => {},
         }
 
-        //  if delay_timer > 0 : delay_timer--
+        // decrease timers
         chip8.decrease_delay_timer();
-        //  if sound_timer > 0 : sound_timer--
         chip8.decrease_sound_timer();
+
+        // play sounds
+        if chip8.sound_timer() > 0 {
+            interface::play_sound(&game_context.sound_device);
+        } else {
+            interface::stop_sound(&game_context.sound_device);
+        }
 
 
         //  avanzar emulación (correr 8 veces por iteración)

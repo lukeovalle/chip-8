@@ -1,11 +1,35 @@
 use sdl2::gfx::primitives::DrawRenderer;
 use sdl2::pixels::Color;
 use anyhow::anyhow;
+use sdl2::audio::{AudioCallback, AudioDevice, AudioSpecDesired};
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 use crate::chip8;
 use crate::chip8::{SCREEN_HEIGHT, SCREEN_WIDTH};
 use std::collections::HashMap;
+
+pub struct SquareWave {
+    phase_inc: f32,
+    phase: f32,
+    volume: f32,
+}
+
+impl AudioCallback for SquareWave {
+    type Channel = f32;
+
+    fn callback(&mut self, out: &mut [f32]) {
+        for x in out.iter_mut() {
+            *x = if self.phase <= 0.5 {
+                self.volume
+            } else {
+                -self.volume
+            };
+
+            self.phase = (self.phase + self.phase_inc) % 1.0;
+        }
+    }
+}
+
 
 pub enum Action {
     Quit,
@@ -13,18 +37,21 @@ pub enum Action {
     Release(u8)
 }
 
-
 pub struct SdlContext {
     _sdl_context: sdl2::Sdl,
     _video_subsystem: sdl2::VideoSubsystem,
-    pub canvas: sdl2::render::Canvas<sdl2::video::Window>,
+    _audio_subsystem: sdl2::AudioSubsystem,
+    canvas: sdl2::render::Canvas<sdl2::video::Window>,
     pub event_pump: sdl2::EventPump,
-    pixel_size: u32
+    _desired_spec: AudioSpecDesired,
+    pub sound_device: AudioDevice<SquareWave>,
+    pixel_size: u32,
 }
 
 pub fn initialize_sdl(pixel_size: u32) -> Result<SdlContext, anyhow::Error> {
     let sdl_context = sdl2::init().map_err(|e| anyhow!(e))?;
     let video_subsystem = sdl_context.video().map_err(|e| anyhow!(e))?;
+    let audio_subsystem = sdl_context.audio().map_err(|e| anyhow!(e))?;
 
     let window = video_subsystem
         .window("CHIP-8",
@@ -38,11 +65,28 @@ pub fn initialize_sdl(pixel_size: u32) -> Result<SdlContext, anyhow::Error> {
     let canvas = window.into_canvas().build().map_err(|e| anyhow!(e))?;
     let event_pump = sdl_context.event_pump().map_err(|e| anyhow!(e))?;
 
+    let desired_spec = AudioSpecDesired {
+        freq: Some(44_100),
+        channels: Some(1),  // mono
+        samples: None,      // default sample size
+    };
+
+    let sound_device = audio_subsystem.open_playback(None, &desired_spec, |spec| {
+        SquareWave {
+            phase_inc: 800.0 / spec.freq as f32,
+            phase: 0.0,
+            volume: 0.25,
+        }
+    }).map_err(|e| anyhow!(e))?;
+
     Ok(SdlContext {
         _sdl_context: sdl_context,
         _video_subsystem: video_subsystem,
+        _audio_subsystem: audio_subsystem,
         canvas,
         event_pump,
+        _desired_spec: desired_spec,
+        sound_device,
         pixel_size
     })
 }
@@ -134,4 +178,11 @@ fn check_key_up(keys: &HashMap<Keycode, u8>, key: Keycode) -> Option<Action> {
     keys.get(&key).map(|&x| Action::Release(x))
 }
 
+pub fn play_sound(sound_device: &AudioDevice<SquareWave>) {
+    sound_device.resume();
+}
+
+pub fn stop_sound(sound_device: &AudioDevice<SquareWave>) {
+    sound_device.pause();
+}
 

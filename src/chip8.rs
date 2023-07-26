@@ -169,6 +169,10 @@ impl Chip8 {
         self.keyboard.set_key(key, false);
     }
 
+    pub fn sound_timer(&self) -> u8 {
+        self.sound_timer
+    }
+
     pub fn decrease_delay_timer(&mut self) {
         self.delay_timer = self.delay_timer.saturating_sub(1);
     }
